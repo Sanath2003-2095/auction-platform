@@ -1,0 +1,50 @@
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
+spring:
+  application:
+    name: auction-platform
+  # Default profile: in-memory H2 (MySQL mode) so the app runs with zero setup.
+  # Use SPRING_PROFILES_ACTIVE=prod for MySQL.
+  datasource:
+    url: jdbc:h2:mem:auction;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 25
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=200,expireAfterWrite=5s
+  jackson:
+    default-property-inclusion: non_null
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
+logging:
+  level:
+    # Optimistic-lock conflicts are expected under contention and are retried by BidService.
+    org.hibernate.orm.jdbc.batch: "OFF"
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}
+  cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5174,http://127.0.0.1:5174,http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000}
+  seed:
+    enabled: ${APP_SEED_ENABLED:true}
+  demo:
+    bots-enabled: ${APP_DEMO_BOTS_ENABLED:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
